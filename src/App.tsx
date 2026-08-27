@@ -77,6 +77,8 @@ import {
 
 type Role = 'superadmin' | 'admin' | 'user'
 type Theme = 'light' | 'dark'
+type VmsTone = 'amber' | 'red' | 'green' | 'white'
+type VmsMotion = 'static' | 'pulse' | 'marquee'
 type NavId =
   | 'overview'
   | 'vms'
@@ -113,6 +115,17 @@ type DetailState = {
   subtitle?: string
   content: ReactNode
 } | null
+
+type VmsTemplate = {
+  id: string
+  name: string
+  category: string
+  headline: string
+  detail: string
+  badge?: string
+  tone: VmsTone
+  icon: LucideIcon
+}
 
 const DEMO_USERS: DemoUser[] = [
   {
@@ -219,6 +232,17 @@ const devices = [
 const TUNNEL_IMAGES = [
   '/images/tunnel-interior.webp',
   '/images/tunnel-entrance.webp',
+]
+
+const VMS_TEMPLATES: VmsTemplate[] = [
+  { id: 'incident', name: 'เหตุฉุกเฉิน', category: 'Emergency', headline: 'โปรดลดความเร็ว', detail: 'ข้างหน้ามีเหตุฉุกเฉิน', badge: '60', tone: 'amber', icon: AlertTriangle },
+  { id: 'speed', name: 'จำกัดความเร็ว', category: 'Speed control', headline: 'จำกัดความเร็ว', detail: 'เพื่อความปลอดภัยในอุโมงค์', badge: '60', tone: 'white', icon: Gauge },
+  { id: 'lane', name: 'ปิดช่องทาง', category: 'Lane control', headline: 'ช่องทางซ้ายปิด', detail: 'โปรดเบี่ยงเข้าช่องทางขวา', badge: '×', tone: 'red', icon: TrafficCone },
+  { id: 'flood', name: 'ระดับน้ำสูง', category: 'Flood warning', headline: 'ระวังน้ำท่วมผิวจราจร', detail: 'ลดความเร็วและเว้นระยะห่าง', badge: '30', tone: 'amber', icon: Waves },
+  { id: 'air', name: 'ระบายอากาศ', category: 'Air quality', headline: 'ระบบระบายอากาศทำงาน', detail: 'โปรดปิดกระจกขณะผ่านอุโมงค์', tone: 'green', icon: Wind },
+  { id: 'traffic', name: 'การจราจรหนาแน่น', category: 'Traffic', headline: 'การจราจรชะลอตัว', detail: 'รักษาระยะห่างจากรถคันหน้า', badge: '40', tone: 'amber', icon: CarFront },
+  { id: 'maintenance', name: 'งานซ่อมบำรุง', category: 'Maintenance', headline: 'มีงานซ่อมบำรุง', detail: 'โปรดปฏิบัติตามสัญญาณเจ้าหน้าที่', tone: 'amber', icon: Settings2 },
+  { id: 'general', name: 'ข้อความทั่วไป', category: 'Information', headline: 'ขับขี่ปลอดภัย', detail: 'เปิดไฟหน้าและคาดเข็มขัดนิรภัย', tone: 'green', icon: Info },
 ]
 
 function getCameraImage(id: string) {
@@ -597,11 +621,42 @@ function EventRow({ alert, onClick }: { alert: typeof alerts[number]; onClick?: 
   )
 }
 
-function VmsPreview({ large = false }: { large?: boolean }) {
+function VmsPreview({
+  large = false,
+  template = VMS_TEMPLATES[0],
+  headline,
+  detail,
+  badge,
+  tone,
+  motion = 'static',
+}: {
+  large?: boolean
+  template?: VmsTemplate
+  headline?: string
+  detail?: string
+  badge?: string
+  tone?: VmsTone
+  motion?: VmsMotion
+}) {
+  const Icon = template.icon
+  const previewHeadline = headline ?? template.headline
+  const previewDetail = detail ?? template.detail
+  const previewBadge = badge === '' ? undefined : (badge ?? template.badge)
+  const previewTone = tone ?? template.tone
+
   return (
-    <div className={`vms-preview ${large ? 'vms-large' : ''}`}>
+    <div
+      className={`vms-preview vms-tone-${previewTone} vms-motion-${motion} ${large ? 'vms-large' : ''}`}
+      role="img"
+      aria-label={`ตัวอย่างป้าย VMS: ${previewHeadline} ${previewDetail}`}
+    >
       <div className="vms-dots" />
-      <div className="vms-content"><AlertTriangle size={large ? 48 : 27} /><div><strong>โปรดลดความเร็ว</strong><span>ข้างหน้ามีเหตุฉุกเฉิน</span></div><b>60</b></div>
+      <div className="vms-scanline" />
+      <div className="vms-content">
+        <Icon size={large ? 48 : 27} aria-hidden="true" />
+        <div><strong>{previewHeadline || 'กรอกข้อความบนป้าย'}</strong>{previewDetail ? <span>{previewDetail}</span> : null}</div>
+        {previewBadge ? <b>{previewBadge}</b> : null}
+      </div>
     </div>
   )
 }
@@ -626,8 +681,35 @@ function HealthDetails() {
 
 function VmsPage({ role, onOpen }: { role: Role; onOpen: (detail: DetailState) => void }) {
   const [contentType, setContentType] = useState<'text' | 'image' | 'video' | '3d'>('text')
-  const [message, setMessage] = useState('โปรดลดความเร็ว\nข้างหน้ามีเหตุฉุกเฉิน')
+  const [templateId, setTemplateId] = useState(VMS_TEMPLATES[0].id)
+  const [headline, setHeadline] = useState(VMS_TEMPLATES[0].headline)
+  const [detail, setDetail] = useState(VMS_TEMPLATES[0].detail)
+  const [badge, setBadge] = useState(VMS_TEMPLATES[0].badge ?? '')
+  const [tone, setTone] = useState<VmsTone>(VMS_TEMPLATES[0].tone)
+  const [motion, setMotion] = useState<VmsMotion>('static')
   const canControl = role !== 'user'
+  const selectedTemplate = VMS_TEMPLATES.find((template) => template.id === templateId) ?? VMS_TEMPLATES[0]
+
+  const applyTemplate = (template: VmsTemplate) => {
+    setTemplateId(template.id)
+    setHeadline(template.headline)
+    setDetail(template.detail)
+    setBadge(template.badge ?? '')
+    setTone(template.tone)
+  }
+
+  const livePreview = (
+    <VmsPreview
+      large
+      template={selectedTemplate}
+      headline={headline}
+      detail={detail}
+      badge={badge}
+      tone={tone}
+      motion={motion}
+    />
+  )
+
   return (
     <div className="page-stack">
       <PageTitle eyebrow="FIELD DISPLAY" title="ป้าย VMS และ Media Control" description="ตรวจสอบและจัดการเนื้อหาบนป้ายจากศูนย์กลาง รองรับข้อความ ภาพ วิดีโอ และสื่อ 3D" action={canControl ? <button className="primary-button"><Plus size={17} />สร้างรายการแสดงผล</button> : <StatusBadge level="neutral">สิทธิ์ดูข้อมูลเท่านั้น</StatusBadge>} />
@@ -644,18 +726,55 @@ function VmsPage({ role, onOpen }: { role: Role; onOpen: (detail: DetailState) =
           </div>
           {contentType === 'text' ? (
             <div className="composer-form">
-              <label>ข้อความบนป้าย<textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={3} /></label>
-              <div className="form-two-col"><label>สีข้อความ<select><option>เหลืองมาตรฐาน</option><option>ขาว</option><option>แดงแจ้งเตือน</option></select></label><label>รูปแบบการแสดง<select><option>คงที่</option><option>เลื่อนจากขวา</option><option>สลับ 2 หน้า</option></select></label></div>
+              <section className="vms-template-picker" aria-labelledby="vms-template-title">
+                <div className="template-picker-heading">
+                  <div><h3 id="vms-template-title">รูปแบบป้ายพร้อมใช้</h3><p>เลือกแม่แบบแล้วปรับข้อความต่อได้ทันที</p></div>
+                  <span>{VMS_TEMPLATES.length} รูปแบบ</span>
+                </div>
+                <div className="vms-template-grid">
+                  {VMS_TEMPLATES.map((template) => {
+                    const TemplateIcon = template.icon
+                    const active = template.id === templateId
+                    return (
+                      <button
+                        type="button"
+                        key={template.id}
+                        className={`vms-template-card tone-${template.tone} ${active ? 'active' : ''}`}
+                        aria-pressed={active}
+                        onClick={() => applyTemplate(template)}
+                        disabled={!canControl}
+                      >
+                        <span className="template-sign"><TemplateIcon size={18} /><i>{template.badge ?? '•••'}</i></span>
+                        <span><strong>{template.name}</strong><small>{template.category}</small></span>
+                        {active ? <Check size={15} className="template-check" /> : null}
+                      </button>
+                    )
+                  })}
+                </div>
+              </section>
+              <div className="vms-copy-fields">
+                <label>ข้อความหลัก<input value={headline} onChange={(event) => setHeadline(event.target.value)} maxLength={32} disabled={!canControl} /><small>{headline.length}/32 ตัวอักษร</small></label>
+                <label>ข้อความรอง<input value={detail} onChange={(event) => setDetail(event.target.value)} maxLength={48} disabled={!canControl} /><small>{detail.length}/48 ตัวอักษร</small></label>
+              </div>
+              <div className="form-three-col">
+                <label>สีข้อความ<select value={tone} onChange={(event) => setTone(event.target.value as VmsTone)} disabled={!canControl}><option value="amber">เหลืองมาตรฐาน</option><option value="white">ขาว</option><option value="red">แดงแจ้งเตือน</option><option value="green">เขียวแนะนำ</option></select></label>
+                <label>รูปแบบการแสดง<select value={motion} onChange={(event) => setMotion(event.target.value as VmsMotion)} disabled={!canControl}><option value="static">คงที่</option><option value="pulse">กระพริบแจ้งเตือน</option><option value="marquee">เลื่อนจากขวา</option></select></label>
+                <label>สัญลักษณ์กำกับ<select value={badge} onChange={(event) => setBadge(event.target.value)} disabled={!canControl}><option value="">ไม่แสดง</option><option value="30">จำกัด 30</option><option value="40">จำกัด 40</option><option value="60">จำกัด 60</option><option value="80">จำกัด 80</option><option value="×">ปิดช่องทาง</option></select></label>
+              </div>
             </div>
           ) : (
             <div className="media-dropzone"><UploadCloud size={27} /><strong>วางไฟล์ {contentType === 'image' ? 'ภาพ' : contentType === 'video' ? 'วิดีโอ' : 'โมเดล 3D'} ที่นี่</strong><span>หรือเลือกจาก Media Library</span><button className="secondary-button">เลือกไฟล์</button></div>
           )}
-          <div className="composer-preview"><span>LIVE PREVIEW · 1920 × 480</span><VmsPreview large /></div>
+          <div className="composer-preview">
+            <div className="preview-heading"><span><i />LIVE PREVIEW</span><small>VMS-01 · 1920 × 480 px</small></div>
+            {livePreview}
+            <div className="preview-meta"><span>แม่แบบ: <b>{selectedTemplate.name}</b></span><span>การแสดงผล: <b>{motion === 'static' ? 'คงที่' : motion === 'pulse' ? 'กระพริบ' : 'เลื่อนข้อความ'}</b></span><em>ตัวอย่างเท่านั้น · ยังไม่ส่งไปยังป้าย</em></div>
+          </div>
           <div className="button-row right"><button className="secondary-button">บันทึกฉบับร่าง</button><button className="primary-button" disabled={!canControl}><Send size={16} />ส่งไปยังป้าย</button></div>
         </Panel>
         <Panel title="VMS Devices" subtitle="สถานะป้ายที่อยู่ในขอบเขตหน่วยงาน">
           <div className="device-card-list">
-            {['VMS-01 ทางเข้าเหนือ', 'VMS-02 ทางเข้าทิศใต้', 'VMS-03 กม. 1+200', 'VMS-04 ทางออกเหนือ', 'VMS-05 ทางออกใต้'].map((name, index) => <button key={name} onClick={() => onOpen({ title: `${name} · Live Preview`, content: <VmsPreview large /> })}><span className={`device-status-orb ${index === 3 ? 'offline' : ''}`}><MonitorPlay size={18} /></span><span><strong>{name}</strong><small>{index === 3 ? 'Maintenance · 28 นาที' : `Online · ${34 + index} ms`}</small></span><StatusBadge level={index === 3 ? 'warning' : 'ok'}>{index === 3 ? 'ซ่อมบำรุง' : 'ออนไลน์'}</StatusBadge><ChevronRight size={16} /></button>)}
+            {['VMS-01 ทางเข้าเหนือ', 'VMS-02 ทางเข้าทิศใต้', 'VMS-03 กม. 1+200', 'VMS-04 ทางออกเหนือ', 'VMS-05 ทางออกใต้'].map((name, index) => <button key={name} onClick={() => onOpen({ title: `${name} · Live Preview`, subtitle: `${selectedTemplate.name} · ตัวอย่างจาก Content Composer`, content: livePreview })}><span className={`device-status-orb ${index === 3 ? 'offline' : ''}`}><MonitorPlay size={18} /></span><span><strong>{name}</strong><small>{index === 3 ? 'Maintenance · 28 นาที' : `Online · ${34 + index} ms`}</small></span><StatusBadge level={index === 3 ? 'warning' : 'ok'}>{index === 3 ? 'ซ่อมบำรุง' : 'ออนไลน์'}</StatusBadge><ChevronRight size={16} /></button>)}
           </div>
         </Panel>
       </div>
