@@ -1,4 +1,4 @@
-# Tunnel Operations Center
+# TMCS — Tunnel Monitoring & Control System
 
 React mockup สำหรับระบบ Monitoring และ Backoffice ของอุโมงค์ ภายใต้ สป. สำนักอำนวยความปลอดภัย
 
@@ -24,6 +24,7 @@ React mockup สำหรับระบบ Monitoring และ Backoffice ข�
 - Device fleet และ ESP32 provisioning / code preview / serial monitor mockup
 - User, organization, permission และ menu management
 - Light, dark และ color-blind mode
+- ภาพอุโมงค์แบบ WebP ที่เก็บภายในโปรเจกต์ ไม่พึ่ง hotlink ตอนใช้งาน
 
 ## Local development
 
@@ -41,3 +42,7 @@ npm run build
 ## Production boundary
 
 ส่วนควบคุมปั๊มน้ำ, Web Serial, firmware burning, live video, MQTT/WebSocket และคำสั่ง VMS เป็น UX mockup เท่านั้น ก่อนใช้งานจริงต้องเชื่อม Backend API, SSO/RBAC, audit log, device certificate, signed firmware, approval workflow และระบบ streaming ที่เหมาะสม
+
+## Image credits
+
+ภาพอุโมงค์ต้นฉบับโดย [viktor rejent](https://unsplash.com/@viktor_rejent) ภายใต้ Unsplash License และแปลงเป็น WebP สำหรับ mockup นี้

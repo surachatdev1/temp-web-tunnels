@@ -216,6 +216,16 @@ const devices = [
   { id: 'ESP-GW-09', name: 'Gateway ระบายน้ำโซน B', type: 'ESP32 Gateway', protocol: 'MQTT', ip: '10.20.4.19', health: 74, status: 'maintenance', firmware: 'v0.8.7' },
 ]
 
+const TUNNEL_IMAGES = [
+  '/images/tunnel-interior.webp',
+  '/images/tunnel-entrance.webp',
+]
+
+function getCameraImage(id: string) {
+  const cameraNumber = Number(id.replace(/\D/g, '')) || 1
+  return TUNNEL_IMAGES[(cameraNumber - 1) % TUNNEL_IMAGES.length]
+}
+
 function formatDateTime(date: Date) {
   return new Intl.DateTimeFormat('th-TH', {
     weekday: 'short',
@@ -286,9 +296,8 @@ function CameraFeed({ id, location, state = 'normal', onOpen }: { id: string; lo
   return (
     <button className={`camera-feed camera-${state}`} onDoubleClick={onOpen} onClick={onOpen} aria-label={`เปิดภาพสด ${id} ${location}`}>
       <div className="camera-visual" aria-hidden="true">
+        <img className="camera-image" src={getCameraImage(id)} alt="" loading="lazy" />
         <div className="camera-grid" />
-        <div className="lane-mark lane-one" />
-        <div className="lane-mark lane-two" />
         <div className="camera-focus"><span /></div>
         {state === 'incident' && <div className="incident-box">AI: STOPPED VEHICLE</div>}
       </div>
@@ -330,7 +339,7 @@ function LoginScreen({ onLogin, theme, toggleTheme, colorBlind, toggleColorBlind
       <header className="login-topbar">
         <div className="brand-lockup">
           <div className="brand-symbol"><Waves size={23} /></div>
-          <div><strong>Tunnel Operations Center</strong><span>สำนักอำนวยความปลอดภัย</span></div>
+          <div><strong>TMCS</strong><span>Tunnel Monitoring & Control System</span></div>
         </div>
         <div className="login-tools">
           <IconButton label={colorBlind ? 'ปิดโหมดตาบอดสี' : 'เปิดโหมดตาบอดสี'} onClick={toggleColorBlind} active={colorBlind}><Eye size={18} /></IconButton>
@@ -340,9 +349,21 @@ function LoginScreen({ onLogin, theme, toggleTheme, colorBlind, toggleColorBlind
 
       <div className="login-shell">
         <section className="login-intro">
-          <StatusBadge level="ok">ระบบพร้อมให้บริการ</StatusBadge>
-          <h1>มองเห็นทุกเหตุการณ์<br /><span>ตัดสินใจได้ในจอเดียว</span></h1>
-          <p>ศูนย์กลางเฝ้าระวังอุโมงค์แบบ near real-time รวมอุปกรณ์ สภาพแวดล้อม การจราจร และเหตุฉุกเฉินไว้ในระบบเดียว</p>
+          <div className="tmcs-title">
+            <StatusBadge level="ok">SYSTEM ONLINE</StatusBadge>
+            <h1>TMCS</h1>
+            <p>Tunnel Monitoring &amp; Control System</p>
+            <span>ระบบติดตามและควบคุมอุโมงค์</span>
+          </div>
+          <figure className="login-scene">
+            <img src="/images/tunnel-entrance.webp" alt="ทางเข้าอุโมงค์บนทางหลวง" fetchPriority="high" width="1800" height="1350" />
+            <figcaption>
+              <span><Radio size={14} /> LIVE OVERVIEW</span>
+              <strong>อุโมงค์คลองไผ่ · การจราจรปกติ</strong>
+              <small>46 devices · 21 cameras · อัปเดตแบบ near real-time</small>
+            </figcaption>
+            <div className="scene-health"><i /><span><b>92%</b> System health</span></div>
+          </figure>
           <div className="login-capabilities">
             <div><Radio size={18} /><span><strong>Near real-time</strong>ข้อมูลสดจากภาคสนาม</span></div>
             <div><ShieldCheck size={18} /><span><strong>Role-based access</strong>แยกสิทธิ์ตามหน่วยงาน</span></div>
@@ -380,7 +401,7 @@ function LoginScreen({ onLogin, theme, toggleTheme, colorBlind, toggleColorBlind
           <p className="demo-password">รหัสผ่านทุกบัญชี: <code>Demo@123</code></p>
         </section>
       </div>
-      <footer className="login-footer"><span>Mockup สำหรับการออกแบบและทดสอบแนวทางเท่านั้น</span><span>One Web Center · Version 0.1</span></footer>
+      <footer className="login-footer"><span>Mockup สำหรับการออกแบบและทดสอบแนวทางเท่านั้น · ภาพประกอบจาก Unsplash</span><span>One Web Center · Version 0.2</span></footer>
     </main>
   )
 }
@@ -390,7 +411,7 @@ function Sidebar({ active, setActive, user, collapsed, setCollapsed, mobileOpen,
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''} ${mobileOpen ? 'mobile-open' : ''}`}>
       <div className="sidebar-brand">
         <div className="brand-symbol"><Waves size={22} /></div>
-        {!collapsed && <div><strong>Tunnel <span>OC</span></strong><small>ONE WEB CENTER</small></div>}
+        {!collapsed && <div><strong><span>TMCS</span></strong><small>TUNNEL MONITORING & CONTROL</small></div>}
         <button className="mobile-sidebar-close" onClick={() => setMobileOpen(false)} aria-label="ปิดเมนู"><X size={20} /></button>
       </div>
       <div className="org-summary">
