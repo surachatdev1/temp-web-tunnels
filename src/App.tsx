@@ -356,7 +356,7 @@ function LoginScreen({ onLogin, theme, toggleTheme, colorBlind, toggleColorBlind
             <span>ระบบติดตามและควบคุมอุโมงค์</span>
           </div>
           <figure className="login-scene">
-            <img src="/images/tunnel-entrance.webp" alt="ทางเข้าอุโมงค์บนทางหลวง" fetchPriority="high" width="1800" height="1350" />
+            <img src="/images/tunnel-entrance.webp" alt="ทางเข้าอุโมงค์บนทางหลวง" fetchPriority="high" width="1440" height="1080" />
             <figcaption>
               <span><Radio size={14} /> LIVE OVERVIEW</span>
               <strong>อุโมงค์คลองไผ่ · การจราจรปกติ</strong>
