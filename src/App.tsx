@@ -207,11 +207,11 @@ const trafficData = [
 ]
 
 const vehicleTypes = [
-  { name: 'รถยนต์', value: 5842, color: '#1d8f84' },
-  { name: 'รถกระบะ', value: 2480, color: '#4e7be7' },
-  { name: 'รถบรรทุก', value: 962, color: '#f2a23a' },
-  { name: 'รถจักรยานยนต์', value: 740, color: '#8b6ad9' },
-  { name: 'รถโดยสาร', value: 382, color: '#df6173' },
+  { name: 'รถยนต์', value: 5842, color: '#2367f2' },
+  { name: 'รถกระบะ', value: 2480, color: '#4d8bff' },
+  { name: 'รถบรรทุก', value: 962, color: '#ff7900' },
+  { name: 'รถจักรยานยนต์', value: 740, color: '#173f78' },
+  { name: 'รถโดยสาร', value: 382, color: '#8cb6ff' },
 ]
 
 const alerts = [
